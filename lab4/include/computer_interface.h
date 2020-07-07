@@ -5,6 +5,7 @@
 class computer_interface_t : public strategy_interface_t {
 public:
 	computer_interface_t();
+	virtual ~computer_interface_t() = 0;
 
 	void on_incorrect_select_step(const step_t& step) const override;
 	void on_incorrect_move_step(const step_t& step) const override;
