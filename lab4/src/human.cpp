@@ -4,8 +4,6 @@
 
 human_strategy_t::human_strategy_t(std::string name) : name(std::move(name)) {}
 
-human_strategy_t::~human_strategy_t() {}
-
 step_t human_strategy_t::read_step() const {
 	char r, c;
 	std::cin >> c >> r;
