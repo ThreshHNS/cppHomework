@@ -7,6 +7,7 @@
 class human_strategy_t : public strategy_interface_t {
 public:
 	human_strategy_t(std::string name);
+	virtual ~human_strategy_t() = 0;
 
 	step_t select_step(const field_t& field) override;
 	void on_incorrect_select_step(const step_t& step) const override;
