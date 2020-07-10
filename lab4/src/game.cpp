@@ -7,11 +7,11 @@ game_t::game_t(const player_t &first, const player_t &second) : field() {
     first->who = 0;
     players.push_back(second);
     second->who = 1;
-	for (int r = 0; r < 8; r++) {
-		for (int c = 0; c < 8; c++) {
-			field.fld[r][c] = (!((r + c) & 1) ? '.' : ("bbb00www"[r]));
-		}
+    for (int r = 0; r < 8; r++) {
+        for (int c = 0; c < 8; c++) {
+	    field.fld[r][c] = (!((r + c) & 1) ? '.' : ("bbb00www"[r]));
 	}
+    }
 }
 
 game_t::game_outcome_t game_t::is_win(int who) const {
