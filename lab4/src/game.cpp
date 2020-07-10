@@ -2,25 +2,30 @@
 
 #include <cmath>
 
-game_t::game_t(const player_t& first, const player_t& second) : field() {
-	players.push_back(first);
-	first->who = 0;
-	players.push_back(second);
-	second->who = 1;
+game_t::game_t(const player_t &first, const player_t &second) : field() {
+    players.push_back(first);
+    first->who = 0;
+    players.push_back(second);
+    second->who = 1;
+	for (int r = 0; r < 8; r++) {
+		for (int c = 0; c < 8; c++) {
+			field.fld[r][c] = (!((r + c) & 1) ? '.' : ("bbb00www"[r]));
+		}
+	}
 }
 
 game_t::game_outcome_t game_t::is_win(int who) const {
-	if (step_cnt > 1337) {
-		return TIE;
-	}
+    if (step_cnt > 1337) {
+        return TIE;
+    }
 	who ^= 1;
 	std::set<std::pair<int, int>> can_attack;
-	check_all_checkers(can_attack, who, field);
+    check_all_checkers(can_attack, who, field);
 	if (!can_attack.empty()) {
 		return IN_PROGRESS;
 	}
-	std::set<std::pair<int, int>> can_move;
-	check_possible_move(can_move, who, field);
+    std::set<std::pair<int, int>> can_move;
+    check_possible_move(can_move, who, field);
 	if (!can_move.empty()) {
 		return IN_PROGRESS;
 	}
@@ -28,19 +33,18 @@ game_t::game_outcome_t game_t::is_win(int who) const {
 }
 
 void game_t::play() {
-	int who = 1;
-	step_cnt = 0;
-	while (is_win(who) == IN_PROGRESS) {
-		who ^= 1;
-		bool correct_step = false;
-		while (!correct_step) {
-			auto select_step = players[who]->select_step(field);
+    int who = 1;
+    step_cnt = 0;
+    while (is_win(who) == IN_PROGRESS) {
+        who ^= 1;
+        bool correct_step = false;
+        while (!correct_step) {
+            auto select_step = players[who]->select_step(field);
 			auto must_attack = false;
-			correct_step = apply_select_step(select_step, who, must_attack);
-			if (!correct_step) {
-				players[who]->on_incorrect_select_step(select_step);
-			}
-			else if (!must_attack) {
+            correct_step = apply_select_step(select_step, who, must_attack);
+            if (!correct_step) {
+                players[who]->on_incorrect_select_step(select_step);
+            } else if (!must_attack) {
 				do {
 					auto move_step = players[who]->make_step(field);
 					correct_step = apply_move_step(select_step, move_step);
@@ -48,22 +52,21 @@ void game_t::play() {
 						players[who]->on_incorrect_move_step(move_step);
 						continue;
 					}
-				} while (!correct_step);
-			}
-			else {
-				do {
-					auto attack_step = players[who]->attack_step(field);
-					correct_step = apply_attack_step(select_step, attack_step, who);
-					if (!correct_step) {
-						players[who]->on_incorrect_attack_step(attack_step);
-						continue;
-					}
-				} while (check_one_checker(select_step, who, field));
-			}
-		}
-		step_cnt++;
-	}
-	if (is_win(who) == TIE) {
+				} while(!correct_step);				
+            } else {
+                do {
+                    auto attack_step = players[who]->attack_step(field);
+                    correct_step = apply_attack_step(select_step, attack_step, who);
+                    if (!correct_step) {
+                        players[who]->on_incorrect_attack_step(attack_step);
+                        continue;
+                    }
+                } while (check_one_checker(select_step, who, field));
+            }
+        }
+        step_cnt++;
+    }
+    if (is_win(who) == TIE) {
 		players[0]->on_tie();
 		players[1]->on_tie();
 	}
@@ -73,7 +76,7 @@ void game_t::play() {
 	}
 }
 
-bool game_t::apply_select_step(const step_t& step, int who, bool& must_attack) {
+bool game_t::apply_select_step(const step_t &step, int who, bool& must_attack) {
 	if (!check_possible_pos(step.r, step.c)) {
 		return false;
 	}
@@ -88,7 +91,7 @@ int game_t::sign(int x) const {
 	return (x < 0 ? -1 : 1);
 }
 
-bool game_t::apply_move_step(const step_t& select_step, const step_t& target_step) {
+bool game_t::apply_move_step(const step_t &select_step, const step_t &target_step) {
 	if (!check_possible_pos(target_step.r, target_step.c)) {
 		return false;
 	}
@@ -124,7 +127,7 @@ bool game_t::apply_move_step(const step_t& select_step, const step_t& target_ste
 	return true;
 }
 
-bool game_t::apply_attack_step(step_t& select_step, step_t& attack_step, int who) {
+bool game_t::apply_attack_step(step_t &select_step, step_t &attack_step, int who) {
 	if (!check_possible_pos(attack_step.r, attack_step.c)) {
 		return false;
 	}
@@ -138,17 +141,17 @@ bool game_t::apply_attack_step(step_t& select_step, step_t& attack_step, int who
 	if (dst <= 1) {
 		return false;
 	}
-	char& me = field.fld[select_step.r][select_step.c];
-	char& to = field.fld[attack_step.r][attack_step.c];
+	char &me = field.fld[select_step.r][select_step.c];
+	char &to = field.fld[attack_step.r][attack_step.c];
 	if (std::islower(me) && dst != 2) {
 		return false;
 	}
 	auto dir = std::make_pair(sign(attack_step.r - select_step.r), sign(attack_step.c - select_step.c));
 	bool ok = true;
 	int cnt = 0;
-	char* last = nullptr;
+	char *last = nullptr;
 	for (int d = 1; d < dst; d++) {
-		char& cell = field.fld[select_step.r + d * dir.first][select_step.c + d * dir.second];
+		char &cell = field.fld[select_step.r + d * dir.first][select_step.c + d * dir.second];
 		if (std::isalpha(cell)) {
 			cnt++;
 			last = &cell;
